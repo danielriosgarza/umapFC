@@ -4,6 +4,8 @@ Created on Thu Feb 10 10:19:06 2022
 
 @author: DGarza
 """
+import plotly.io as pio
+pio.renderers.default='browser'
 import plotly.graph_objs as go
 
 import numpy as np
@@ -18,7 +20,7 @@ class LabelExperiment:
                  group : str, 
                  time : int, 
                  condition : str ='wc', 
-                 cover : float = 5.0, 
+                 cover : float = 1.5, 
                  sgT : float = 10**4.5, 
                  piT : float = 10**3.1,
                  channels : list = ['FSC-A',
@@ -76,7 +78,7 @@ class LabelExperiment:
         
         self.sData = np.arcsinh(self.dataTable/150)
         self.swData = self.whiten(self.sData)
-        self.embbeding = umap.UMAP(n_components=3, n_neighbors=25, min_dist=0.1, metric = 'euclidean', n_jobs=self.n_jobs).fit(self.swData).embedding_
+        self.embbeding = umap.UMAP(n_components=3, n_neighbors=25, min_dist=0.0, metric = 'canberra', n_jobs=self.n_jobs).fit(self.swData).embedding_
         
         self.__getLabels()
         self.__getState()
@@ -147,33 +149,23 @@ class LabelExperiment:
 
     def makePlot(self):
         x = self.embbeding.T[0]
-        x = self.embbeding.T[0]
-        y = self.embbeding.T[1]
         y = self.embbeding.T[1]
         z = self.embbeding.T[2]
-        z = self.embbeding.T[2]
-        
         
         data = []
-        data = []
+
         data.append(go.Scatter3d(x=x[self.state=='live'], y=y[self.state=='live'], z=z[self.state=='live'],mode='markers', name='live cells', marker=dict(size=1.0, color='#39FF14')))
-        data.append(go.Scatter3d(x=x[self.state=='live'], y=y[self.state=='live'], z=z[self.state=='live'],mode='markers', name='live cells', marker=dict(size=1.0, color='#39FF14')))
-        data.append(go.Scatter3d(x=x[self.state=='dead'], y=y[self.state=='dead'], z=z[self.state=='dead'],mode='markers', name='inactive cells (pi positive)', marker=dict(size=1.0, color='#FF10F0')))
+        
         data.append(go.Scatter3d(x=x[self.state=='dead'], y=y[self.state=='dead'], z=z[self.state=='dead'],mode='markers', name='inactive cells<br>(pi positive)', marker=dict(size=1.0, color='#FF10F0')))
+        
         data.append(go.Scatter3d(x=x[self.state=='bkgr'], y=y[self.state=='bkgr'], z=z[self.state=='bkgr'],mode='markers', name='background events', marker=dict(size=1.0, color='#1c1c1c')))
-        data.append(go.Scatter3d(x=x[self.state=='bkgr'], y=y[self.state=='bkgr'], z=z[self.state=='bkgr'],mode='markers', name='background events', marker=dict(size=1.0, color='#1c1c1c')))
-        data.append(go.Scatter3d(x=x[0:self.nBlankFilePoints], y=y[0:self.nBlankFilePoints], z=z[0:self.nBlankFilePoints],mode='markers', name='blank file events', marker=dict(size=1.0, color='#57595D')))
+        
         data.append(go.Scatter3d(x=x[0:self.nBlankFilePoints], y=y[0:self.nBlankFilePoints], z=z[0:self.nBlankFilePoints],mode='markers', name='blank file events', marker=dict(size=1.0, color='#aaaaaa')))
         
-        
-        fig = go.Figure(data=data)
         fig = go.Figure(data=data)
     
-    
-        fig.update_layout(title_text='UmapGating' + ' ' + self.title)
         fig.update_layout(title_text='UmapGating' + ' ' + self.title)
         fig.update_layout(legend= {'borderwidth':1, 'font' : dict(size= 8), 'itemwidth' : 30, 'itemsizing' : 'constant', 'xanchor' : 'left', 'orientation': 'h'})
-        fig.update_layout(legend= {'itemsizing': 'constant'})
         fig.update_layout(legend_title_text='<b>populations</b>')
         
         fig.update_layout(scene = dict(
@@ -181,7 +173,6 @@ class LabelExperiment:
                     yaxis_title='UMAP 2',
                     zaxis_title='UMAP 3'),
                     boxgap=0)
-        fig.show()
         fig.show()
     
     def writeTable(self, filePath):
